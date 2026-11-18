@@ -1089,54 +1089,53 @@ const google = {
 
 try { google.profile = JSON.parse(localStorage.getItem('cd_google_profile') || 'null'); } catch (_) { /* ignorar */ }
 
+
 function loadGoogleScript() {
   return new Promise((resolve, reject) => {
-    if (window.google?.accounts) {
+    // Google ya está disponible.
+    if (window.google?.accounts?.id) {
       resolve();
       return;
     }
 
     const scriptUrl = 'https://accounts.google.com/gsi/client';
-    const existingScript = document.querySelector(
+
+    let script = document.querySelector(
       `script[src="${scriptUrl}"]`
     );
 
-    if (existingScript) {
-      if (existingScript.dataset.loaded === 'true') {
-        resolve();
-        return;
-      }
+    // Si no existe, lo creamos.
+    if (!script) {
+      script = document.createElement('script');
+      script.src = scriptUrl;
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
 
-      existingScript.addEventListener('load', () => {
-        existingScript.dataset.loaded = 'true';
-        resolve();
-      }, { once: true });
-
-      existingScript.addEventListener('error', () => {
-        reject(new Error('No se pudo cargar el servicio de Google.'));
-      }, { once: true });
-
+    // Comprobar nuevamente antes de esperar.
+    if (window.google?.accounts?.id) {
+      resolve();
       return;
     }
 
-    const script = document.createElement('script');
-    script.src = scriptUrl;
-    script.async = true;
-    script.defer = true;
+    script.addEventListener('load', () => {
+      if (window.google?.accounts?.id) {
+        resolve();
+      } else {
+        reject(new Error(
+          'Google se cargó, pero el servicio de inicio de sesión no está disponible.'
+        ));
+      }
+    }, { once: true });
 
-    script.onload = () => {
-      script.dataset.loaded = 'true';
-      resolve();
-    };
-
-    script.onerror = () => {
-      reject(new Error('No se pudo cargar el servicio de Google.'));
-    };
-
-    document.head.appendChild(script);
+    script.addEventListener('error', () => {
+      reject(new Error(
+        'No se pudo cargar el servicio de Google.'
+      ));
+    }, { once: true });
   });
 }
-
 
 async function initializeGoogleSignIn() {
   await loadGoogleScript();
