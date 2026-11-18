@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>CapturaDatos · Registro de información</title>
+  <meta name="description" content="Aplicación para captura de datos con campos personalizables (texto, numérico e imagen). Los registros se guardan en el dispositivo y se pueden respaldar en Google Drive.">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CapturaDatos">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Saltar al contenido</a>
+
+  <header class="app-header">
+    <div class="wrap header-inner">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
+        </span>
+        <div>
+          <h1>CapturaDatos</h1>
+          <p>Taller de Investigación</p>
+        </div>
+      </div>
+      <button type="button" class="btn btn-light btn-sm" id="installBtnTop" hidden>Instalar app</button>
+      <button type="button" class="btn btn-light btn-sm" id="apiLogoutBtn" hidden>
+        Cerrar sesión
+      </button>
+    </div>
+    <nav id="tabsNav" class="wrap tabs" aria-label="Secciones de la aplicación" hidden>
+      <button type="button" class="tab" data-view="form" aria-current="page">Nuevo registro</button>
+      <button type="button" class="tab" data-view="list">Registros <span class="count" id="countBadge">0</span></button>
+      <button type="button" class="tab" data-view="fields">Campos</button>
+      <button type="button" class="tab" data-view="backup">Respaldo y descargas</button>
+    </nav>
+  </header>
+
+  <main id="main" class="wrap">
+    <div id="fatal" class="alert alert-error" role="alert" hidden></div>
+
+        <!-- ================= INICIO DE SESIÓN ================= -->
+<section id="view-login" class="view">
+  <div class="card">
+    <div class="card-head">
+      <h2>Acceso a CapturaDatos</h2>
+      <p class="muted">
+        Inicia sesión con Google para acceder a tus datos.
+      </p>
+    </div>
+
+    <div class="actions">
+      <div id="googleSignInButton"></div>
+
+      <p class="error" id="loginError" role="alert"></p>
+
+      <button
+        type="button"
+        class="btn btn-secondary"
+        id="offlineLoginBtn"
+      >
+        Iniciar sin conexión
+      </button>
+    </div>
+  </div>
+</section>
+
+    <!-- ================= NUEVO REGISTRO ================= -->
+    <section id="view-form" class="view" hidden>
+      <div class="card">
+        <div class="card-head">
+          <h2 id="formTitle">Nuevo registro</h2>
+          <p class="muted">Los campos marcados con <span class="req">*</span> son obligatorios.</p>
+        </div>
+
+        <div id="editBanner" class="alert alert-info" hidden>
+          <span>Estás editando un registro existente.</span>
+          <button type="button" class="btn btn-ghost btn-sm" id="cancelEditBtn">Cancelar edición</button>
+        </div>
+
+        <form id="recordForm" novalidate>
+          <div id="fields" class="fields-grid"></div>
+          <div class="actions">
+            <button type="submit" class="btn btn-primary" id="saveBtn">Guardar registro</button>
+            <button type="button" class="btn btn-ghost" id="resetBtn">Limpiar formulario</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ================= REGISTROS ================= -->
+    <section id="view-list" class="view" hidden>
+      <div class="card">
+        <div class="card-head row-between">
+          <div>
+            <h2>Registros guardados</h2>
+            <p class="muted" id="listMeta">0 registros</p>
+          </div>
+          <div class="toolbar-actions">
+            <button type="button" class="btn btn-outline btn-sm" id="exportXlsxBtn">Descargar Excel (.xlsx)</button>
+            <button type="button" class="btn btn-outline btn-sm" id="printBtn">Descargar PDF</button>
+          </div>
+        </div>
+
+        <div class="search">
+          <label for="searchInput" class="sr-only">Buscar registros</label>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="searchInput" type="search" placeholder="Buscar por matrícula, nombre o cualquier dato…" autocomplete="off">
+        </div>
+
+        <p class="print-only" id="printTitle"></p>
+        <div id="tableWrap" class="table-wrap"></div>
+        <div id="emptyState" class="empty" hidden></div>
+      </div>
+    </section>
+
+    <!-- ================= CAMPOS ================= -->
+    <section id="view-fields" class="view" hidden>
+      <div class="card">
+        <div class="card-head">
+          <h2>Agregar un campo nuevo</h2>
+          <p class="muted">El campo aparecerá de inmediato en el formulario de captura.</p>
+        </div>
+        <form id="fieldForm" class="field-form" novalidate>
+          <div class="field">
+            <label for="newLabel">Nombre del campo <span class="req">*</span></label>
+            <input id="newLabel" type="text" maxlength="40" placeholder="Ej. Domicilio, Municipio, Fotografía…" autocomplete="off">
+            <p class="error" id="newLabelErr" role="alert"></p>
+          </div>
+          <div class="field">
+            <label for="newType">Tipo de dato</label>
+            <select id="newType">
+              <option value="text">Texto (domicilio, calle, municipio, ciudad…)</option>
+              <option value="number">Numérico (edad, número de domicilio, registro 0001…)</option>
+              <option value="image">Imagen (fotografía, credencial, identificación…)</option>
+            </select>
+          </div>
+          <div class="field field-check">
+            <label class="check"><input id="newRequired" type="checkbox"> Campo obligatorio</label>
+          </div>
+          <div class="field field-submit">
+            <button type="submit" class="btn btn-primary">Agregar campo</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Campos del formulario</h2>
+          <p class="muted">Los campos base no se pueden eliminar. Los que agregues sí.</p>
+        </div>
+        <ul id="fieldList" class="field-list"></ul>
+      </div>
+    </section>
+
+    <!-- ================= RESPALDO Y DESCARGAS ================= -->
+    <section id="view-backup" class="view" hidden>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Cuenta de Google</h2>
+          <p class="muted">Inicia sesión con tu correo de Google para respaldar tus registros en tu Drive.</p>
+        </div>
+        <div id="cfgWarn" class="alert alert-warn" hidden>
+          <span>Falta configurar el <strong>Client ID</strong> de Google en <code>js/app.js</code> (constante <code>GOOGLE_CLIENT_ID</code>). Consulta el README. Mientras tanto puedes usar el respaldo en archivo.</span>
+        </div>
+        <div class="account">
+          <div class="avatar" id="accAvatar" aria-hidden="true">?</div>
+          <div class="account-info">
+            <strong id="accName">Sin sesión iniciada</strong>
+            <span class="muted" id="accEmail">Conecta tu cuenta para usar Google Drive.</span>
+          </div>
+          <div class="account-actions">
+            <button type="button" class="btn btn-primary btn-sm" id="googleLoginBtn">Iniciar sesión con Google</button>
+            <button type="button" class="btn btn-outline btn-sm" id="googleLogoutBtn" hidden>Cerrar sesión</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Respaldo en Google Drive</h2>
+          <p class="muted" id="driveStatus">Aún no has hecho un respaldo en esta sesión.</p>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="driveBackupBtn">Respaldar en Drive</button>
+          <button type="button" class="btn btn-outline" id="driveRestoreBtn">Restaurar desde Drive</button>
+        </div>
+        <hr class="sep">
+        <h3 class="sub">Respaldo en archivo (sin internet)</h3>
+        <p class="muted">Guarda una copia completa (campos, registros e imágenes) en un archivo .json y restáurala cuando quieras.</p>
+        <div class="btn-row">
+          <button type="button" class="btn btn-outline" id="jsonBackupBtn">Descargar respaldo (.json)</button>
+          <label class="btn btn-outline file-btn" for="jsonRestoreInput">Restaurar desde archivo</label>
+          <input id="jsonRestoreInput" type="file" accept="application/json,.json" hidden>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Descargas</h2>
+          <p class="muted">Exporta tus registros para análisis o para entregar.</p>
+        </div>
+        <div class="download-grid">
+          <div class="download">
+            <strong>Excel (.xlsx)</strong>
+            <span class="muted">Para análisis. Conserva ceros a la izquierda (0001).</span>
+            <button type="button" class="btn btn-primary btn-sm" id="exportXlsxBtn2">Descargar Excel</button>
+          </div>
+          <div class="download">
+            <strong>CSV</strong>
+            <span class="muted">Texto separado por comas, compatible con cualquier programa.</span>
+            <button type="button" class="btn btn-outline btn-sm" id="exportCsvBtn">Descargar CSV</button>
+          </div>
+          <div class="download">
+            <strong>PDF</strong>
+            <span class="muted">Se abre el diálogo de impresión: elige “Guardar como PDF”.</span>
+            <button type="button" class="btn btn-outline btn-sm" id="printBtn2">Descargar PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Instalar en el celular</h2>
+          <p class="muted" id="installStatus">Puedes instalar CapturaDatos como una app y abrirla desde la pantalla de inicio.</p>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="installBtn">Instalar app</button>
+        </div>
+        <ul class="howto">
+          <li><strong>Android (Chrome):</strong> menú ⋮ → “Instalar aplicación” o “Agregar a la pantalla principal”.</li>
+          <li><strong>iPhone / iPad (Safari):</strong> botón Compartir → “Agregar a pantalla de inicio”.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap app-footer">
+    <p>Los datos se guardan en este dispositivo. Solo salen de él si tú los respaldas en Google Drive.</p>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Diálogo de confirmación -->
+  <dialog id="confirm" class="dialog">
+    <form method="dialog">
+      <h3 id="confirmTitle"></h3>
+      <p id="confirmMsg" class="muted"></p>
+      <div class="dialog-actions">
+        <button type="submit" value="cancel" class="btn btn-ghost">Cancelar</button>
+        <button type="submit" value="ok" class="btn btn-danger" id="confirmOk">Eliminar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Visor de imagen -->
+  <dialog id="lightbox" class="dialog lightbox">
+    <form method="dialog">
+      <img id="lightboxImg" alt="">
+      <p id="lightboxCaption" class="muted"></p>
+      <div class="dialog-actions">
+        <button type="submit" class="btn btn-primary">Cerrar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="js/xlsx.js"></script>
+  <script>
+    window.CAPTURADATOS_API_URL =
+    'https://shape-quilt-schemes-forty.trycloudflare.com';
+    
+    window.CAPTURADATOS_GOOGLE_CLIENT_ID =
+'671208999306-fqjlj9co81gqeh3fgugf1ltensg1jahj.apps.googleusercontent.com';
+  </script>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="js/app.js?v=2"></script>
+</body>
+</html>
