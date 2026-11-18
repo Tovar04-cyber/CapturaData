@@ -1330,18 +1330,52 @@ async function ensureDriveAccount() {
   }
 }
 
+
 function renderAccount() {
   const p = google.profile;
-  $('#cfgWarn').hidden = !!GOOGLE_CLIENT_ID;
-  $('#googleLoginBtn').hidden = !!p;
-  $('#googleLogoutBtn').hidden = !p;
-  $('#accName').textContent = p ? (p.name || 'Cuenta de Google') : 'Sin sesión iniciada';
-  $('#accEmail').textContent = p ? p.email : 'Conecta tu cuenta para usar Google Drive.';
-  const av = $('#accAvatar');
-  av.replaceChildren();
-  if (p && p.picture) av.append(h('img', { src: p.picture, alt: '', referrerpolicy: 'no-referrer' }));
-  else av.textContent = p ? (p.name || p.email || '?').charAt(0).toUpperCase() : '?';
+
+  const cfgWarn = $('#cfgWarn');
+  const loginBtn = $('#googleLoginBtn');
+  const logoutBtn = $('#googleLogoutBtn');
+  const accName = $('#accName');
+  const accEmail = $('#accEmail');
+  const avatar = $('#accAvatar');
+
+  if (cfgWarn) cfgWarn.hidden = !!GOOGLE_CLIENT_ID;
+  if (loginBtn) loginBtn.hidden = !!p;
+  if (logoutBtn) logoutBtn.hidden = !p;
+
+  if (accName) {
+    accName.textContent = p
+      ? (p.name || 'Cuenta de Google')
+      : 'Sin sesión iniciada';
+  }
+
+  if (accEmail) {
+    accEmail.textContent = p
+      ? p.email
+      : 'Conecta tu cuenta para usar Google Drive.';
+  }
+
+  if (avatar) {
+    avatar.replaceChildren();
+
+    if (p && p.picture) {
+      avatar.append(
+        h('img', {
+          src: p.picture,
+          alt: '',
+          referrerpolicy: 'no-referrer'
+        })
+      );
+    } else {
+      avatar.textContent = p
+        ? (p.name || p.email || '?').charAt(0).toUpperCase()
+        : '?';
+    }
+  }
 }
+
 
 async function findBackupFile() {
   const q = encodeURIComponent(`name='${BACKUP_FILE_NAME}' and trashed=false`);
