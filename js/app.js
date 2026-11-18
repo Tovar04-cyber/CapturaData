@@ -1633,18 +1633,7 @@ async function init() {
   const googleLogoutBtn = $('#googleLogoutBtn');
   const backupBtn = $('#driveBackupBtn');
   const restoreBtn = $('#driveRestoreBtn');
-
-  if (googleLoginBtn) {
-    googleLoginBtn.addEventListener(
-      'click',
-      guarded(googleLoginBtn, googleLogin)
-    );
-  }
-
-  if (googleLogoutBtn) {
-    googleLogoutBtn.addEventListener('click', googleLogout);
-  }
-
+   
   if (backupBtn) {
     backupBtn.addEventListener('click', guarded(backupBtn, async () => {
       await ensureDriveAccount();
