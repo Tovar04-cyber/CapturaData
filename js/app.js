@@ -103,13 +103,14 @@ function logout() {
   offlineMode = false;
   authToken = null;
   authUser = null;
-  google.token = null;
-  google.expires = 0;
-  google.profile = null;
 
   sessionStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(USER_KEY);
-  try { localStorage.removeItem('cd_google_profile'); } catch (_) {}
+
+  // Limpiar los datos visibles de la cuenta anterior.
+  state.records = [];
+  state.fields = [];
+  state.editingId = null;
 }
 
 function showLogin() {
