@@ -1232,7 +1232,10 @@ async function googleFetch(url, opts = {}) {
     google.token = null;
     throw new Error('La sesión de Google expiró. Inténtalo de nuevo.');
   }
-  if (!res.ok) throw new Error(`Google respondió con error ${res.status}.`);
+  if (!res.ok) {
+  const detail = await res.text();
+  console.error('Error detallado de Google:', detail);
+  throw new Error(`Google respondió con error ${res.status}: ${detail}`);
   return res;
 }
 
