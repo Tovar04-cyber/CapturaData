@@ -1581,85 +1581,84 @@ async function init() {
   $('#jsonRestoreInput').addEventListener('change', onJsonRestore);
 
   // Google
-const googleLoginBtn = $('#googleLoginBtn');
-const googleLogoutBtn = $('#googleLogoutBtn');
-const backupBtn = $('#driveBackupBtn');
-const restoreBtn = $('#driveRestoreBtn');
+  const googleLoginBtn = $('#googleLoginBtn');
+  const googleLogoutBtn = $('#googleLogoutBtn');
+  const backupBtn = $('#driveBackupBtn');
+  const restoreBtn = $('#driveRestoreBtn');
 
-if (googleLoginBtn) {
-  googleLoginBtn.addEventListener(
-    'click',
-    guarded(googleLoginBtn, googleLogin)
-  );
-}
+  if (googleLoginBtn) {
+    googleLoginBtn.addEventListener(
+      'click',
+      guarded(googleLoginBtn, googleLogin)
+    );
+  }
 
-if (googleLogoutBtn) {
-  googleLogoutBtn.addEventListener('click', googleLogout);
-}
+  if (googleLogoutBtn) {
+    googleLogoutBtn.addEventListener('click', googleLogout);
+  }
 
-if (backupBtn) {
-  backupBtn.addEventListener('click', guarded(backupBtn, async () => {
-    if (!google.profile) await googleLogin();
-    await driveBackup();
-  }));
-}
+  if (backupBtn) {
+    backupBtn.addEventListener('click', guarded(backupBtn, async () => {
+      if (!google.profile) await googleLogin();
+      await driveBackup();
+    }));
+  }
 
-if (restoreBtn) {
-  restoreBtn.addEventListener('click', guarded(restoreBtn, async () => {
-    if (!google.profile) await googleLogin();
-    await driveRestore();
-  }));
-}
+  if (restoreBtn) {
+    restoreBtn.addEventListener('click', guarded(restoreBtn, async () => {
+      if (!google.profile) await googleLogin();
+      await driveRestore();
+    }));
+  }
 
-renderAccount();
+  renderAccount();
 
-try {
-  await initializeGoogleSignIn();
-} catch (error) {
-  console.error('Google Sign-In:', error);
-}
+  try {
+    await initializeGoogleSignIn();
+  } catch (error) {
+    console.error('Google Sign-In:', error);
+  }
 
   // Instalación PWA
   $('#installBtn').addEventListener('click', installApp);
   $('#installBtnTop').addEventListener('click', installApp);
   updateInstallUI();
 
- // Abrir almacenamiento local de la cuenta
-try {
-  if (authToken && authUser) {
-    db = await openDB(getAccountDBName(authUser.id));
-  }
-
-  if (navigator.storage && navigator.storage.persist) {
-    navigator.storage.persist().catch(() => {});
-  }
-
-  // Recuperar sesión o mostrar acceso
-  if (authToken) {
-    try {
-      await loadFields();
-      await loadRecords();
-
-      renderForm();
-      renderFieldList();
-      renderListView();
-
-      showApp();
-      return;
-
-    } catch (err) {
-      console.error('Error al recuperar la sesión:', err);
-      logout();
+  // Abrir almacenamiento local de la cuenta
+  try {
+    if (authToken && authUser) {
+      db = await openDB(getAccountDBName(authUser.id));
     }
+
+    if (navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist().catch(() => {});
+    }
+
+    // Recuperar sesión o mostrar acceso
+    if (authToken) {
+      try {
+        await loadFields();
+        await loadRecords();
+
+        renderForm();
+        renderFieldList();
+        renderListView();
+
+        showApp();
+        return;
+
+      } catch (err) {
+        console.error('Error al recuperar la sesión:', err);
+        logout();
+      }
+    }
+
+    showLogin();
+
+  } catch (err) {
+    console.error('Error al iniciar CapturaDatos:', err);
+    showLogin();
   }
-
-  showLogin();
-
-} catch (err) {
-  console.error('Error al iniciar CapturaDatos:', err);
-  showLogin();
-}
-
 }
 
 init();
