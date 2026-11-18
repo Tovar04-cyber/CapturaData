@@ -89,6 +89,9 @@ async function loginWithGoogle(idToken) {
     body: JSON.stringify({ idToken })
   });
 
+   offlineMode = false;
+
+
   if (!data.token || !data.user) {
     throw new Error('El servidor no devolvió una sesión válida.');
   }
