@@ -2,19 +2,13 @@
 
 /* =====================================================================
    CapturaDatos – aplicación de captura de datos (PWA)
-   - Almacenamiento local: IndexedDB (persistente, sin servidor).
-   - Campos base + campos dinámicos (texto, numérico, imagen).
-   - Exportación: Excel (.xlsx real), CSV y PDF (impresión).
-   - Respaldo: Google Drive (inicio de sesión con Google) y archivo .json.
-   - Instalable en celular (manifest.json + sw.js).
+- Almacenamiento local: IndexedDB (persistente, por usuario).
+- Campos base + campos dinámicos (texto, numérico, imagen).
+- Exportación: Excel (.xlsx real), CSV y PDF (impresión).
+- Respaldo: Google Drive (inicio de sesión con Google) y archivo .json.
+- Instalable en celular (manifest.json + sw.js).
    ===================================================================== */
 
-/* ---------------------------------------------------------------------
-   CONFIGURACIÓN DE GOOGLE
-   Pega aquí tu "ID de cliente de OAuth 2.0" (tipo: Aplicación web).
-   Pasos en el README. Si lo dejas vacío, el inicio de sesión con Google
-   aparece pero avisa que falta configurarlo; el respaldo en archivo sí funciona.
-   --------------------------------------------------------------------- */
 const GOOGLE_CLIENT_ID = window.CAPTURADATOS_GOOGLE_CLIENT_ID;
 const GOOGLE_SCOPES = 'openid email profile https://www.googleapis.com/auth/drive.file';
 const BACKUP_FILE_NAME = 'capturadatos-respaldo.json';
@@ -84,6 +78,8 @@ async function apiRequest(path, options = {}) {
 /* ---------- Autenticación ---------- */
 
 async function loginWithGoogle(idToken) {
+  logout(); // Limpiar estado previo antes de procesar la nueva cuenta
+
   const data = await apiRequest('/api/auth/google', {
     method: 'POST',
     body: JSON.stringify({ idToken })
@@ -98,10 +94,7 @@ async function loginWithGoogle(idToken) {
 
   sessionStorage.setItem(TOKEN_KEY, authToken);
   sessionStorage.setItem(USER_KEY, JSON.stringify(authUser));
-  localStorage.setItem(
-  'capturadatos-offline-user',
-  JSON.stringify(authUser)
-);
+  localStorage.setItem('capturadatos-offline-user', JSON.stringify(authUser));
 
   return authUser;
 }
@@ -110,9 +103,13 @@ function logout() {
   offlineMode = false;
   authToken = null;
   authUser = null;
+  google.token = null;
+  google.expires = 0;
+  google.profile = null;
 
   sessionStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(USER_KEY);
+  try { localStorage.removeItem('cd_google_profile'); } catch (_) {}
 }
 
 function showLogin() {
@@ -134,14 +131,12 @@ function showApp() {
   showView('list');
 }
 
-
-
 async function startOfflineSession() {
+  logout(); // Limpiar tokens previos
+
   try {
-    // Usar una base local independiente por dispositivo
     db = await openDB('capturadatos-offline-db');
 
-    // Inicializar los campos base si es la primera vez
     let fields = await dbGetAll('fields');
 
     if (fields.length === 0) {
@@ -156,16 +151,12 @@ async function startOfflineSession() {
 
     const records = await dbGetAll('records');
 
-    // Evitar utilizar la sesión de Google en este modo
-    authToken = null;
-    authUser = null;
     offlineMode = true;
 
     state.fields = fields.sort((a, b) => a.order - b.order);
     state.records = records;
     state.query = '';
 
-    // Dibujar los datos en pantalla
     renderForm();
     renderFieldList();
     renderListView();
@@ -353,7 +344,6 @@ function dbGetAll(storeName) {
   });
 }
 
-
 /** Ejecuta una escritura y espera a que la transacción termine realmente. */
 function dbWrite(storeName, fn) {
   return new Promise((resolve, reject) => {
@@ -375,7 +365,6 @@ function dbWrite(storeName, fn) {
     );
   });
 }
-
 
 /** Elimina un campo y sus valores en todos los registros (una sola transacción). */
 function dbDeleteField(fieldId) {
@@ -648,71 +637,71 @@ async function onSubmit(e) {
     return;
   }
 
-    const existing = state.editingId != null
+  const existing = state.editingId != null
     ? state.records.find((r) => r.id === state.editingId)
     : null;
 
   const wasEditing = !!existing;
 
   try {
-  if (offlineMode) {
-    const now = new Date().toISOString();
+    if (offlineMode) {
+      const now = new Date().toISOString();
 
-    if (existing) {
-      const updated = {
-        ...existing,
-        matricula: values.matricula,
-        values,
-        updatedAt: now
-      };
+      if (existing) {
+        const updated = {
+          ...existing,
+          matricula: values.matricula,
+          values,
+          updatedAt: now
+        };
 
-      await dbWrite('records', (s) => s.put(updated));
+        await dbWrite('records', (s) => s.put(updated));
+      } else {
+        const newRecord = {
+          matricula: values.matricula,
+          values,
+          createdAt: now,
+          updatedAt: now
+        };
+
+        const newId = await dbWrite(
+          'records',
+          (s) => s.add(newRecord)
+        );
+
+        newRecord.id = newId;
+      }
+
+      state.records = await dbGetAll('records');
+
     } else {
-      const newRecord = {
+      const payload = {
         matricula: values.matricula,
-        values,
-        createdAt: now,
-        updatedAt: now
+        values
       };
 
-      const newId = await dbWrite(
-        'records',
-        (s) => s.add(newRecord)
-      );
+      const saved = existing
+        ? await apiRequest(`/api/records/${state.editingId}`, {
+            method: 'PUT',
+            body: JSON.stringify(payload)
+          })
+        : await apiRequest('/api/records', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+          });
 
-      newRecord.id = newId;
+      await dbWrite('records', (s) => s.put(saved));
+      await loadRecords();
     }
 
-    state.records = await dbGetAll('records');
-
-  } else {
-    const payload = {
-      matricula: values.matricula,
-      values
-    };
-
-    const saved = existing
-      ? await apiRequest(`/api/records/${state.editingId}`, {
-          method: 'PUT',
-          body: JSON.stringify(payload)
-        })
-      : await apiRequest('/api/records', {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-
-    await dbWrite('records', (s) => s.put(saved));
-    await loadRecords();
+  } catch (err) {
+    toast(
+      'No se pudo guardar: ' +
+      (err && err.message ? err.message : 'error desconocido'),
+      true
+    );
+    return;
   }
-
-} catch (err) {
-  toast(
-    'No se pudo guardar: ' +
-    (err && err.message ? err.message : 'error desconocido'),
-    true
-  );
-  return;
-}
 
   resetForm();
   renderListView();
@@ -747,7 +736,6 @@ function matchesQuery(rec, q) {
   if (!q) return true;
   return state.fields.some((f) => f.type !== 'image' && norm(rec.values[f.id]).includes(q));
 }
-
 
 function renderListView() {
   const total = state.records.length;
@@ -1011,7 +999,6 @@ async function applyBackup(data, sourceLabel) {
   if (!ok) return false;
 
   if (offlineMode) {
-    // Restaurar exclusivamente en la base local del dispositivo
     await dbWrite('fields', (s) => {
       s.clear();
       for (const field of fields) s.put(field);
@@ -1026,7 +1013,6 @@ async function applyBackup(data, sourceLabel) {
     state.records = await dbGetAll('records');
 
   } else {
-    // Restaurar en PostgreSQL para la cuenta Google
     await apiRequest('/api/backup/restore', {
       method: 'POST',
       body: JSON.stringify({ fields, records })
@@ -1122,7 +1108,6 @@ function loadGoogleScript() {
   });
 }
 
-
 async function initializeGoogleSignIn() {
   await loadGoogleScript();
 
@@ -1135,6 +1120,7 @@ async function initializeGoogleSignIn() {
 
     callback: async (response) => {
       const errorBox = $('#loginError');
+      errorBox.textContent = '';
 
       try {
         if (!response.credential) {
@@ -1147,6 +1133,10 @@ async function initializeGoogleSignIn() {
 
         await loadFields();
         await loadRecords();
+
+        renderForm();
+        renderFieldList();
+        renderListView();
 
         showApp();
       } catch (error) {
@@ -1233,10 +1223,10 @@ async function googleFetch(url, opts = {}) {
     throw new Error('La sesión de Google expiró. Inténtalo de nuevo.');
   }
   if (!res.ok) {
-  const detail = await res.text();
-  console.error('Error detallado de Google:', detail);
-  throw new Error(`Google respondió con error ${res.status}: ${detail}`);
-}
+    const detail = await res.text();
+    console.error('Error detallado de Google:', detail);
+    throw new Error(`Google respondió con error ${res.status}: ${detail}`);
+  }
   return res;
 }
 
@@ -1408,7 +1398,6 @@ function renderFieldList() {
   }
 }
 
-
 async function onAddField(e) {
   e.preventDefault();
 
@@ -1476,7 +1465,6 @@ async function onAddField(e) {
   }
 }
 
-
 async function removeField(id) {
   const f = state.fields.find((x) => x.id === id);
   if (!f || f.base) return;
@@ -1537,12 +1525,10 @@ function showView(name) {
 /* ------------------------------ Arranque ------------------------------ */
 
 async function init() {
-  // Navegación
   document.querySelectorAll('.tab').forEach((t) => {
     t.addEventListener('click', () => showView(t.dataset.view));
   });
 
-  // Formularios
   $('#recordForm').addEventListener('submit', onSubmit);
   $('#resetBtn').addEventListener('click', () => {
     resetForm();
@@ -1554,34 +1540,28 @@ async function init() {
   });
   $('#fieldForm').addEventListener('submit', onAddField);
 
-  // Acceso sin conexión
   $('#offlineLoginBtn').addEventListener('click', startOfflineSession);
 
-  // Cerrar sesión
   $('#apiLogoutBtn').addEventListener('click', () => {
     logout();
     resetForm();
     showLogin();
   });
 
-  // Búsqueda
   $('#searchInput').addEventListener('input', (e) => {
     state.query = e.target.value;
     renderListView();
   });
 
-  // Descargas
   $('#exportXlsxBtn').addEventListener('click', exportXLSX);
   $('#exportXlsxBtn2').addEventListener('click', exportXLSX);
   $('#exportCsvBtn').addEventListener('click', exportCSV);
   $('#printBtn').addEventListener('click', exportPDF);
   $('#printBtn2').addEventListener('click', exportPDF);
 
-  // Respaldo en archivo
   $('#jsonBackupBtn').addEventListener('click', jsonBackup);
   $('#jsonRestoreInput').addEventListener('change', onJsonRestore);
 
-  // Google
   const googleLoginBtn = $('#googleLoginBtn');
   const googleLogoutBtn = $('#googleLogoutBtn');
   const backupBtn = $('#driveBackupBtn');
@@ -1620,23 +1600,18 @@ async function init() {
     console.error('Google Sign-In:', error);
   }
 
-  // Instalación PWA
   $('#installBtn').addEventListener('click', installApp);
   $('#installBtnTop').addEventListener('click', installApp);
   updateInstallUI();
 
-  // Abrir almacenamiento local de la cuenta
   try {
-    if (authToken && authUser) {
-      db = await openDB(getAccountDBName(authUser.id));
-    }
-
     if (navigator.storage && navigator.storage.persist) {
       navigator.storage.persist().catch(() => {});
     }
 
-    // Recuperar sesión o mostrar acceso
-    if (authToken) {
+    if (authToken && authUser) {
+      db = await openDB(getAccountDBName(authUser.id));
+
       try {
         await loadFields();
         await loadRecords();
