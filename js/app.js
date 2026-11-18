@@ -91,8 +91,9 @@ async function loginWithGoogle(idToken) {
 
   offlineMode = false;
 
+
   if (!data.token || !data.user) {
-    throw new Error('Respuesta de autenticación inválida.');
+    throw new Error('El servidor no devolvió una sesión válida.');
   }
 
   authToken = data.token;
@@ -100,11 +101,10 @@ async function loginWithGoogle(idToken) {
 
   sessionStorage.setItem(TOKEN_KEY, authToken);
   sessionStorage.setItem(USER_KEY, JSON.stringify(authUser));
-
   localStorage.setItem(
-    'capturadatos-offline-user',
-    JSON.stringify(authUser)
-  );
+  'capturadatos-offline-user',
+  JSON.stringify(authUser)
+);
 
   return authUser;
 }
@@ -1299,6 +1299,38 @@ function googleLogout() {
   toast('Sesión cerrada.');
 }
 
+async function ensureDriveAccount() {
+  if (offlineMode || !authToken || !authUser?.email) {
+    throw new Error(
+      'Debes iniciar sesión con Google en CapturaDatos para usar respaldos en Drive.'
+    );
+  }
+
+  const expectedEmail = authUser.email.trim().toLowerCase();
+  const currentEmail = google.profile?.email?.trim().toLowerCase();
+
+  if (google.token && currentEmail === expectedEmail) {
+    return;
+  }
+
+  if (google.token || google.profile) {
+    await googleLogout();
+  }
+
+  await googleLogin(expectedEmail);
+
+  const authenticatedEmail =
+    google.profile?.email?.trim().toLowerCase();
+
+  if (authenticatedEmail !== expectedEmail) {
+    await googleLogout();
+
+    throw new Error(
+      `La cuenta de Drive debe ser ${authUser.email}.`
+    );
+  }
+}
+
 function renderAccount() {
   const p = google.profile;
   $('#cfgWarn').hidden = !!GOOGLE_CLIENT_ID;
@@ -1615,14 +1647,14 @@ async function init() {
 
   if (backupBtn) {
     backupBtn.addEventListener('click', guarded(backupBtn, async () => {
-      if (!google.profile) await googleLogin();
+      await ensureDriveAccount();
       await driveBackup();
     }));
   }
 
   if (restoreBtn) {
     restoreBtn.addEventListener('click', guarded(restoreBtn, async () => {
-      if (!google.profile) await googleLogin();
+      await ensureDriveAccount();
       await driveRestore();
     }));
   }
