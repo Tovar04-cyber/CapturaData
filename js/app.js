@@ -1061,7 +1061,8 @@ async function onJsonRestore(e) {
   }
 }
 
-/* ------------------------- Google: sesión y Drive ------------------------- */
+/* ------------------------- 
+: sesión y Drive ------------------------- */
 
 const google = {
   token: null,
@@ -1236,6 +1237,7 @@ async function googleFetch(url, opts = {}) {
   const detail = await res.text();
   console.error('Error detallado de Google:', detail);
   throw new Error(`Google respondió con error ${res.status}: ${detail}`);
+}
   return res;
 }
 
