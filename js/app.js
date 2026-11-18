@@ -1159,10 +1159,14 @@ async function initializeGoogleSignIn() {
 
         db = await openDB(getAccountDBName(authUser.id));
 
-        await loadFields();
-        await loadRecords();
+         await loadFields();
+         await loadRecords();
 
-        showApp();
+         renderForm();
+         renderFieldList();
+         renderListView();
+
+         showApp();
       } catch (error) {
         errorBox.textContent = error.message;
       }
