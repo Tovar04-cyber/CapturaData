@@ -1061,8 +1061,9 @@ async function onJsonRestore(e) {
   }
 }
 
-/* ------------------------- 
-: sesión y Drive ------------------------- */
+/* ---------------------------------------------------------------------
+   Google: sesión y Drive
+   --------------------------------------------------------------------- */
 
 const google = {
   token: null,
@@ -1072,8 +1073,6 @@ const google = {
 };
 
 try { google.profile = JSON.parse(localStorage.getItem('cd_google_profile') || 'null'); } catch (_) { /* ignorar */ }
-
-
 
 function loadGoogleScript() {
   return new Promise((resolve, reject) => {
