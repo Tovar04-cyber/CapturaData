@@ -89,11 +89,10 @@ async function loginWithGoogle(idToken) {
     body: JSON.stringify({ idToken })
   });
 
-   offlineMode = false;
-
+  offlineMode = false;
 
   if (!data.token || !data.user) {
-    throw new Error('El servidor no devolvió una sesión válida.');
+    throw new Error('Respuesta de autenticación inválida.');
   }
 
   authToken = data.token;
@@ -101,10 +100,11 @@ async function loginWithGoogle(idToken) {
 
   sessionStorage.setItem(TOKEN_KEY, authToken);
   sessionStorage.setItem(USER_KEY, JSON.stringify(authUser));
+
   localStorage.setItem(
-  'capturadatos-offline-user',
-  JSON.stringify(authUser)
-);
+    'capturadatos-offline-user',
+    JSON.stringify(authUser)
+  );
 
   return authUser;
 }
