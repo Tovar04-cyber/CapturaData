@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>CapturaDatos · Registro de información</title>
-  <meta name="description" content="Aplicación para captura de datos con campos personalizables (texto, numérico e imagen). Los registros se guardan en el dispositivo y se pueden respaldar en Google Drive.">
+  <title>CapturaDatos Â· Registro de informaciÃ³n</title>
+  <meta name="description" content="AplicaciÃ³n para captura de datos con campos personalizables (texto, numÃ©rico e imagen). Los registros se guardan en el dispositivo y se pueden respaldar en Google Drive.">
 
   <!-- PWA -->
   <link rel="manifest" href="manifest.json">
@@ -29,15 +29,15 @@
         </span>
         <div>
           <h1>CapturaDatos</h1>
-          <p>Taller de Investigación</p>
+          <p>Taller de InvestigaciÃ³n</p>
         </div>
       </div>
       <button type="button" class="btn btn-light btn-sm" id="installBtnTop" hidden>Instalar app</button>
       <button type="button" class="btn btn-light btn-sm" id="apiLogoutBtn" hidden>
-        Cerrar sesión
+        Cerrar sesiÃ³n
       </button>
     </div>
-    <nav id="tabsNav" class="wrap tabs" aria-label="Secciones de la aplicación" hidden>
+    <nav id="tabsNav" class="wrap tabs" aria-label="Secciones de la aplicaciÃ³n" hidden>
       <button type="button" class="tab" data-view="form" aria-current="page">Nuevo registro</button>
       <button type="button" class="tab" data-view="list">Registros <span class="count" id="countBadge">0</span></button>
       <button type="button" class="tab" data-view="fields">Campos</button>
@@ -48,13 +48,13 @@
   <main id="main" class="wrap">
     <div id="fatal" class="alert alert-error" role="alert" hidden></div>
 
-        <!-- ================= INICIO DE SESIÓN ================= -->
+        <!-- ================= INICIO DE SESIÃ“N ================= -->
 <section id="view-login" class="view">
   <div class="card">
     <div class="card-head">
       <h2>Acceso a CapturaDatos</h2>
       <p class="muted">
-        Inicia sesión con Google para acceder a tus datos.
+        Inicia sesiÃ³n con Google para acceder a tus datos.
       </p>
     </div>
 
@@ -68,7 +68,7 @@
         class="btn btn-secondary"
         id="offlineLoginBtn"
       >
-        Iniciar sin conexión
+        Iniciar sin conexiÃ³n
       </button>
     </div>
   </div>
@@ -83,8 +83,8 @@
         </div>
 
         <div id="editBanner" class="alert alert-info" hidden>
-          <span>Estás editando un registro existente.</span>
-          <button type="button" class="btn btn-ghost btn-sm" id="cancelEditBtn">Cancelar edición</button>
+          <span>EstÃ¡s editando un registro existente.</span>
+          <button type="button" class="btn btn-ghost btn-sm" id="cancelEditBtn">Cancelar ediciÃ³n</button>
         </div>
 
         <form id="recordForm" novalidate>
@@ -114,7 +114,7 @@
         <div class="search">
           <label for="searchInput" class="sr-only">Buscar registros</label>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input id="searchInput" type="search" placeholder="Buscar por matrícula, nombre o cualquier dato…" autocomplete="off">
+          <input id="searchInput" type="search" placeholder="Buscar por matrÃ­cula, nombre o cualquier datoâ€¦" autocomplete="off">
         </div>
 
         <p class="print-only" id="printTitle"></p>
@@ -128,20 +128,20 @@
       <div class="card">
         <div class="card-head">
           <h2>Agregar un campo nuevo</h2>
-          <p class="muted">El campo aparecerá de inmediato en el formulario de captura.</p>
+          <p class="muted">El campo aparecerÃ¡ de inmediato en el formulario de captura.</p>
         </div>
         <form id="fieldForm" class="field-form" novalidate>
           <div class="field">
             <label for="newLabel">Nombre del campo <span class="req">*</span></label>
-            <input id="newLabel" type="text" maxlength="40" placeholder="Ej. Domicilio, Municipio, Fotografía…" autocomplete="off">
+            <input id="newLabel" type="text" maxlength="40" placeholder="Ej. Domicilio, Municipio, FotografÃ­aâ€¦" autocomplete="off">
             <p class="error" id="newLabelErr" role="alert"></p>
           </div>
           <div class="field">
             <label for="newType">Tipo de dato</label>
             <select id="newType">
-              <option value="text">Texto (domicilio, calle, municipio, ciudad…)</option>
-              <option value="number">Numérico (edad, número de domicilio, registro 0001…)</option>
-              <option value="image">Imagen (fotografía, credencial, identificación…)</option>
+              <option value="text">Texto (domicilio, calle, municipio, ciudadâ€¦)</option>
+              <option value="number">NumÃ©rico (edad, nÃºmero de domicilio, registro 0001â€¦)</option>
+              <option value="image">Imagen (fotografÃ­a, credencial, identificaciÃ³nâ€¦)</option>
             </select>
           </div>
           <div class="field field-check">
@@ -156,7 +156,7 @@
       <div class="card">
         <div class="card-head">
           <h2>Campos del formulario</h2>
-          <p class="muted">Los campos base no se pueden eliminar. Los que agregues sí.</p>
+          <p class="muted">Los campos base no se pueden eliminar. Los que agregues sÃ­.</p>
         </div>
         <ul id="fieldList" class="field-list"></ul>
       </div>
@@ -168,7 +168,7 @@
       <div class="card">
         <div class="card-head">
           <h2>Cuenta de Google</h2>
-          <p class="muted">Inicia sesión con tu correo de Google para respaldar tus registros en tu Drive.</p>
+          <p class="muted">Inicia sesiÃ³n con tu correo de Google para respaldar tus registros en tu Drive.</p>
         </div>
         <div id="cfgWarn" class="alert alert-warn" hidden>
           <span>Falta configurar el <strong>Client ID</strong> de Google en <code>js/app.js</code> (constante <code>GOOGLE_CLIENT_ID</code>). Consulta el README. Mientras tanto puedes usar el respaldo en archivo.</span>
@@ -176,12 +176,12 @@
         <div class="account">
           <div class="avatar" id="accAvatar" aria-hidden="true">?</div>
           <div class="account-info">
-            <strong id="accName">Sin sesión iniciada</strong>
+            <strong id="accName">Sin sesiÃ³n iniciada</strong>
             <span class="muted" id="accEmail">Conecta tu cuenta para usar Google Drive.</span>
           </div>
           <div class="account-actions">
-            <button type="button" class="btn btn-primary btn-sm" id="googleLoginBtn">Iniciar sesión con Google</button>
-            <button type="button" class="btn btn-outline btn-sm" id="googleLogoutBtn" hidden>Cerrar sesión</button>
+            <button type="button" class="btn btn-primary btn-sm" id="googleLoginBtn">Iniciar sesiÃ³n con Google</button>
+            <button type="button" class="btn btn-outline btn-sm" id="googleLogoutBtn" hidden>Cerrar sesiÃ³n</button>
           </div>
         </div>
       </div>
@@ -189,7 +189,7 @@
       <div class="card">
         <div class="card-head">
           <h2>Respaldo en Google Drive</h2>
-          <p class="muted" id="driveStatus">Aún no has hecho un respaldo en esta sesión.</p>
+          <p class="muted" id="driveStatus">AÃºn no has hecho un respaldo en esta sesiÃ³n.</p>
         </div>
         <div class="btn-row">
           <button type="button" class="btn btn-primary" id="driveBackupBtn">Respaldar en Drive</button>
@@ -197,7 +197,7 @@
         </div>
         <hr class="sep">
         <h3 class="sub">Respaldo en archivo (sin internet)</h3>
-        <p class="muted">Guarda una copia completa (campos, registros e imágenes) en un archivo .json y restáurala cuando quieras.</p>
+        <p class="muted">Guarda una copia completa (campos, registros e imÃ¡genes) en un archivo .json y restÃ¡urala cuando quieras.</p>
         <div class="btn-row">
           <button type="button" class="btn btn-outline" id="jsonBackupBtn">Descargar respaldo (.json)</button>
           <label class="btn btn-outline file-btn" for="jsonRestoreInput">Restaurar desde archivo</label>
@@ -208,12 +208,12 @@
       <div class="card">
         <div class="card-head">
           <h2>Descargas</h2>
-          <p class="muted">Exporta tus registros para análisis o para entregar.</p>
+          <p class="muted">Exporta tus registros para anÃ¡lisis o para entregar.</p>
         </div>
         <div class="download-grid">
           <div class="download">
             <strong>Excel (.xlsx)</strong>
-            <span class="muted">Para análisis. Conserva ceros a la izquierda (0001).</span>
+            <span class="muted">Para anÃ¡lisis. Conserva ceros a la izquierda (0001).</span>
             <button type="button" class="btn btn-primary btn-sm" id="exportXlsxBtn2">Descargar Excel</button>
           </div>
           <div class="download">
@@ -223,7 +223,7 @@
           </div>
           <div class="download">
             <strong>PDF</strong>
-            <span class="muted">Se abre el diálogo de impresión: elige “Guardar como PDF”.</span>
+            <span class="muted">Se abre el diÃ¡logo de impresiÃ³n: elige â€œGuardar como PDFâ€.</span>
             <button type="button" class="btn btn-outline btn-sm" id="printBtn2">Descargar PDF</button>
           </div>
         </div>
@@ -238,20 +238,20 @@
           <button type="button" class="btn btn-primary" id="installBtn">Instalar app</button>
         </div>
         <ul class="howto">
-          <li><strong>Android (Chrome):</strong> menú ⋮ → “Instalar aplicación” o “Agregar a la pantalla principal”.</li>
-          <li><strong>iPhone / iPad (Safari):</strong> botón Compartir → “Agregar a pantalla de inicio”.</li>
+          <li><strong>Android (Chrome):</strong> menÃº â‹® â†’ â€œInstalar aplicaciÃ³nâ€ o â€œAgregar a la pantalla principalâ€.</li>
+          <li><strong>iPhone / iPad (Safari):</strong> botÃ³n Compartir â†’ â€œAgregar a pantalla de inicioâ€.</li>
         </ul>
       </div>
     </section>
   </main>
 
   <footer class="wrap app-footer">
-    <p>Los datos se guardan en este dispositivo. Solo salen de él si tú los respaldas en Google Drive.</p>
+    <p>Los datos se guardan en este dispositivo. Solo salen de Ã©l si tÃº los respaldas en Google Drive.</p>
   </footer>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <!-- Diálogo de confirmación -->
+  <!-- DiÃ¡logo de confirmaciÃ³n -->
   <dialog id="confirm" class="dialog">
     <form method="dialog">
       <h3 id="confirmTitle"></h3>
@@ -277,7 +277,7 @@
   <script src="js/xlsx.js"></script>
   <script>
     window.CAPTURADATOS_API_URL =
-    'liberal-teach-hardware-spending.trycloudflare.com';
+    'https://liberal-teach-hardware-spending.trycloudflare.com';
     
     window.CAPTURADATOS_GOOGLE_CLIENT_ID =
 '671208999306-fqjlj9co81gqeh3fgugf1ltensg1jahj.apps.googleusercontent.com';
@@ -287,3 +287,4 @@
   <script src="js/app.js?v=2"></script>
 </body>
 </html>
+
